@@ -1,6 +1,6 @@
 ---
 title: "Assignment 1: Introduction"
-author: "Student Name"
+author: Jess Garcia
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -22,15 +22,15 @@ The completed exercise is due on <>.
 
 1. What are your previous experiences with data analytics, R, and Git? Include both formal and informal training.
 
-> Answer: 
+> Answer: I have almost no experience with data analytics, R, and Git. I have worked with Stata in my Public Policy statistics course at Sanford.I have atteneded a workshop or two on R but have forgotten almost everything.
 
 2. Are there any components of the course about which you feel confident?
 
-> Answer: 
+> Answer: I feel okay about my understanding of statistics basics, but I am not sure how much use that will be on the data analaysis side of things.
 
 3. Are there any components of the course about which you feel apprehensive?
 
-> Answer: 
+> Answer: I am pretty intimidated by the entire course. I am apprehensive about anything data science, coding, programming, etc. but I am excited to learn! I'm just hoping the learning will be taken slowly and step-by-step for us rubes.
 
 
 ## 2) GitHub
@@ -39,4 +39,4 @@ Provide a link below to your forked course repository in GitHub. Make sure you h
 
 > Answer: 
 
-
+https://github.com/jmg144/Environmental_Data_Analytics_2021.git
