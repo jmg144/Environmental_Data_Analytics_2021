@@ -1,6 +1,6 @@
 ---
 title: "Assignment 2: Coding Basics"
-author: "Student Name"
+author: Jess Garcia
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -31,11 +31,25 @@ This exercise accompanies the lessons in Environmental Data Analytics on coding 
 4. Insert comments in your code to describe what you are doing.
 
 ```{r}
-#1. 
+#1. Generating a sequence from 1 to 100, increasing by fours, and naming that sequence
 
-#2. 
+#Generating sequence
+seq(1,100,4)
 
-#3. 
+#Naming sequence
+new_sequence <- seq(1,100,4) 
+
+
+#2. Computing mean and median of newly created sequence
+mean(new_sequence)
+median(new_sequence)
+
+
+#3. Asking R if mean is greater than median in sequence
+mean(new_sequence)>median(new_sequence)
+#If true, then mean is greater than the median of this sequence
+#If false, then mean is less than or equal to the median of this sequence
+
 
 ```
 
@@ -50,21 +64,62 @@ This exercise accompanies the lessons in Environmental Data Analytics on coding 
 8. Label the columns of your data frame with informative titles.
 
 ```{r}
+#5/#6. Creating Vectors 
+
+# Creating vector for student names
+student_names <- c("Anna","Bill","Cece","Dan")
+student_names
+  #Vector type =character
+  class(student_names)
+
+#Creating vector for student scores
+test_score <- c(40,80,90,70)
+test_score
+  #Vector type =numeric
+  class(test_score)
+
+#Creating vector for passing or failing test
+test_passed <- c(FALSE,TRUE,TRUE,TRUE)
+test_passed
+  #Vector type =logical
+  class(test_passed)
+  
+
+#7/#8. Combining vectors into a data frame
+#Creating data frame of student tests
+Student_Tests_df <-data.frame ("Student"=student_names,"Score"=test_score,"Passed"=test_passed)
+Student_Tests_df
 
 ```
 
 9. QUESTION: How is this data frame different from a matrix?
 
-> Answer: 
+> Answer: This data frame has vectors of equal length but has different modes (character, numeric, logical), unlike a matrix where all columns must have the same length and mode.
 
 10. Create a function with an if/else statement. Your function should determine whether a test score is a passing grade of 50 or above (TRUE or FALSE). You will need to choose either the `if` and `else` statements or the `ifelse` statement. Hint: Use `print`, not `return`. The name of your function should be informative.
 
 11. Apply your function to the vector with test scores that you created in number 5. 
 
 ```{r}
+#10/#11. Creating a function to determine passing grade & apply the function
+#Create the function using "if" and "else"
+test_status1 <-function(test_score){
+  if(test_score>=50){print("Pass")}
+  else{print("Fail")}
+  }
+test_status1(test_score)
+  #Only works by inputting individual scores, e.g.:
+  test_status1(50)
+
+
+#Create the function using "ifelse"
+test_status2 <-function(test_score){
+  ifelse(test_score>=50,"Pass","Fail")}
+  #Runs all the test scores from the test_score vector at once, apply to function to the vector
+  test_status2(test_score)
 
 ```
 
 12. QUESTION: Which option of `if` and `else` vs. `ifelse` worked? Why?
 
-> Answer: 
+> Answer: The combined "ifelse" statement worked while the separate "if" and "else" did not. Trying the "if" and "else" when inputing the test scores gave a warning that only the first element would be used because the vector has a length greater than one, so it will not apply to more than one score."Ifelse" applies it to all scores, and so running it will give you the test status for all of the scores in the created vector. 
