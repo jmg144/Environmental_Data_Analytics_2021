@@ -118,6 +118,15 @@ test_status2 <-function(test_score){
   #Runs all the test scores from the test_score vector at once, apply to function to the vector
   test_status2(test_score)
 
+  
+  ##For fun, I want to add to the previously created data frame
+#First, assign my new function to an object
+test_result <-test_status2
+
+#Add the object to the data frame using cbind()
+Student_Tests_df2<-cbind(Student_Tests_df,test_result)
+
+
 ```
 
 12. QUESTION: Which option of `if` and `else` vs. `ifelse` worked? Why?
