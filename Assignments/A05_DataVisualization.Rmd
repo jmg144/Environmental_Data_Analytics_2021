@@ -26,13 +26,14 @@ The completed exercise is due on Tuesday, February 23 at 11:59 pm.
 1. Set up your session. Verify your working directory and load the tidyverse 
 and cowplot packages. Upload the NTL-LTER processed data files for nutrients 
 and chemistry/physics for Peter and Paul Lakes (both the tidy 
-[`NTL-LTER_Lake_ChemistryPhysics_Nutrients_PeterPaul_Processed.csv`] and the gathered
+[`NTL-LTER_Lake_ChemistryNutrients_PeterPaul_Processed.csv`] and the gathered
 [`NTL-LTER_Lake_Nutrients_PeterPaulGathered_Processed.csv`] versions) and 
 the processed data file for the Niwot Ridge litter dataset. 
 
 2. Make sure R is reading dates as date format; if not change the format to date.
 
-```{r}
+```{r, tidy=TRUE, warning = FALSE}
+
 #1. Confirm directory, load packages, & upload data
 
 #Confirm workingdirectory
@@ -53,7 +54,7 @@ Niwot_Littertrap <- read.csv("./Data/Processed/NEON_NIWO_Litter_mass_trap_Proces
 
 
 #2. Confirm dates as date objects
-class(ChemistryPhysics_PeterPaul$sampledate)
+class(ChemistryNutrients_PeterPaul$sampledate)
 class(PeterPaul_Nutrients_Gathered$sampledate)
 class(Niwot_Littertrap$collectDate)
 
@@ -68,7 +69,7 @@ Niwot_Littertrap$collectDate <- as.Date(Niwot_Littertrap$collectDate, format = "
 ## Define your theme
 3. Build a theme and set it as your default theme.
 
-```{r}
+```{r, tidy=TRUE, warning = FALSE}
 #https://ggplot2.tidyverse.org/reference/theme.html 
 
 #Build default theme
@@ -84,7 +85,7 @@ For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best pract
 
 4. [NTL-LTER] Plot total phosphorus (`tp_ug`) by phosphate (`po4`), with separate aesthetics for Peter and Paul lakes. Add a line of best fit and color it black. Adjust your axes to hide extreme values.
 
-```{r}
+```{r, tidy=TRUE, warning = FALSE}
 #4. Create scatterplot for phosphorous and phosphate at Pete & Paul Lakes
 PeterPaul.tp_ug.po4.plot <-
   ggplot(ChemistryNutrients_PeterPaul, aes(x=po4, y = tp_ug))+
@@ -94,8 +95,8 @@ PeterPaul.tp_ug.po4.plot <-
   ggtitle("Peter Lake & Paul Lake\nPhosphorous & Phosphate Levels")+
   theme(plot.title = element_text(hjust = 0.5))+
   labs(x = "Phosphate", y= "Phosphorous (ug)", color = "Lakes")+
-  xlim(0, 50)+
-  geom_smooth(method = lm)
+  xlim(0, 45)+
+  geom_smooth(method = lm, color = "black")
 print(PeterPaul.tp_ug.po4.plot)
 
 ```
@@ -103,7 +104,7 @@ print(PeterPaul.tp_ug.po4.plot)
 
 5. [NTL-LTER] Make three separate boxplots of (a) temperature, (b) TP, and (c) TN, with month as the x axis and lake as a color aesthetic. Then, create a cowplot that combines the three graphs. Make sure that only one legend is present and that graph axes are aligned.
 
-```{r}
+```{r, tidy=TRUE, warning = FALSE}
 #5. Create three separate boxplots 
 #First make month as factor and not integer
 ChemistryNutrients_PeterPaul$month <- as.factor(ChemistryNutrients_PeterPaul$month)
@@ -135,17 +136,13 @@ ggplot(ChemistryNutrients_PeterPaul, aes(x=month, y= tn_ug, color =lakename))+
   labs(x= "Month", y = "Nitrogen (ug)", color = "Lakes")
 print(PeterPaul_TN.boxplot)
 
+
 #Combine the threee boxplots using cowplot
 PeterPaul_combined_boxplot <-
-plot_grid(PeterPaul_Temperature.boxplot, PeterPaul_TP.boxplot +theme(legend.position="none"), PeterPaul_TN.boxplot +theme(legend.position ="none"), nrow=3, align = 'h')
-
-print(PeterPaul_combined_boxplot)
-
-
-
-
-PeterPaul_combined_boxplot <-
-plot_grid(PeterPaul_Temperature.boxplot, PeterPaul_TP.boxplot, PeterPaul_TN.boxplot, nrow=3, align = 'h')
+plot_grid(PeterPaul_Temperature.boxplot +theme(legend.position="none")+ theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold")), 
+PeterPaul_TP.boxplot  +theme(legend.position="none")+ theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold")), 
+PeterPaul_TN.boxplot +theme(legend.position ="bottom")+ theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold")), 
+nrow=3, align = 'h', rel_heights = c(1,1,1.5))
 
 print(PeterPaul_combined_boxplot)
 
@@ -153,15 +150,14 @@ print(PeterPaul_combined_boxplot)
 
 Question: What do you observe about the variables of interest over seasons and between lakes? 
 
-> Answer: 
+> Answer: In the warmer months there are higher concentrations of phosphorous and nitrogen in these lakes. Also, Peter Lake tends to have higher levels of nitrogen and phosphorous regardless of the month compared to Paul Lake; i.e. the median concentration values are higher in Peter Lake than Paul Lake.
 
 6. [Niwot Ridge] Plot a subset of the litter dataset by displaying only the "Needles" functional group. Plot the dry mass of needle litter by date and separate by NLCD class with a color aesthetic. (no need to adjust the name of each land use)
 
 7. [Niwot Ridge] Now, plot the same plot but with NLCD classes separated into three facets rather than separated by color. 
 
-```{r}
+```{r, tidy=TRUE, warning = FALSE}
 #6. Niwot Ridge - Needles plot w/NLCD classes separated by color
-
 Niwot_NeedlesMass_color.plot <- 
   ggplot(subset(Niwot_Littertrap, functionalGroup == "Needles"),
   aes(x=collectDate, y=dryMass, color = nlcdClass))+
@@ -193,4 +189,4 @@ print(Niwot_NeedlesMass_facets.plot)
 ```
 Question: Which of these plots (6 vs. 7) do you think is more effective, and why? 
 
-> Answer:
+> Answer: I think plot 7 is probably more effective than plot 6 only because I am able to tell more clearly how the type of forest (nlcdClass) relates to the dry mass collected. Both 6 and 7 make it obvious which months do not have litter collected so they are even there. Plot 6 is more useful if I'm interested in generally seeing what the spread of dry mass collected is generally, but I think in this case the site does matter and so plot 7 is more helpful. 
