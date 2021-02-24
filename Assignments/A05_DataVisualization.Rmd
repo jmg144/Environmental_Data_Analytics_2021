@@ -1,6 +1,6 @@
 ---
 title: "Assignment 5: Data Visualization"
-author: "Student Name"
+author: "Jess Garcia"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -26,23 +26,56 @@ The completed exercise is due on Tuesday, February 23 at 11:59 pm.
 1. Set up your session. Verify your working directory and load the tidyverse 
 and cowplot packages. Upload the NTL-LTER processed data files for nutrients 
 and chemistry/physics for Peter and Paul Lakes (both the tidy 
-[`NTL-LTER_Lake_Chemistry_Nutrients_PeterPaul_Processed.csv`] and the gathered
+[`NTL-LTER_Lake_ChemistryPhysics_Nutrients_PeterPaul_Processed.csv`] and the gathered
 [`NTL-LTER_Lake_Nutrients_PeterPaulGathered_Processed.csv`] versions) and 
 the processed data file for the Niwot Ridge litter dataset. 
 
 2. Make sure R is reading dates as date format; if not change the format to date.
 
 ```{r}
-#1 
+#1. Confirm directory, load packages, & upload data
 
-#2 
+#Confirm workingdirectory
+getwd()
 
+#Load packages
+#install.packages("cowplot")
+library(tidyverse)
+library(cowplot)
+library(lubridate)
+
+#Load data
+ChemistryNutrients_PeterPaul <- read.csv("./Data/Processed/NTL-LTER_Lake_Chemistry_Nutrients_PeterPaul_Processed.csv", stringsAsFactors = TRUE)
+
+PeterPaul_Nutrients_Gathered <- read.csv("./Data/Processed/NTL-LTER_Lake_Nutrients_PeterPaulGathered_Processed.csv", stringsAsFactors = TRUE)
+
+Niwot_Littertrap <- read.csv("./Data/Processed/NEON_NIWO_Litter_mass_trap_Processed.csv", stringsAsFactors = TRUE)
+
+
+#2. Confirm dates as date objects
+class(ChemistryPhysics_PeterPaul$sampledate)
+class(PeterPaul_Nutrients_Gathered$sampledate)
+class(Niwot_Littertrap$collectDate)
+
+#Change from factor objects to date objects
+
+ChemistryNutrients_PeterPaul$sampledate <- as.Date(ChemistryNutrients_PeterPaul$sampledate, format = "%Y-%m-%d")
+
+PeterPaul_Nutrients_Gathered$sampledate <- as.Date(PeterPaul_Nutrients_Gathered$sampledate, format = "%Y-%m-%d")
+
+Niwot_Littertrap$collectDate <- as.Date(Niwot_Littertrap$collectDate, format = "%Y-%m-%d") 
 ```
 ## Define your theme
 3. Build a theme and set it as your default theme.
 
 ```{r}
+#https://ggplot2.tidyverse.org/reference/theme.html 
 
+#Build default theme
+JG_default_theme <- theme_bw(base_size = 12)+
+  theme(axis.text = element_text(color = "black"), 
+        plot.title = element_text(color = "black", size = 16, face = "bold",
+        hjust = 0.5))
 
 ```
 
@@ -52,7 +85,18 @@ For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best pract
 4. [NTL-LTER] Plot total phosphorus (`tp_ug`) by phosphate (`po4`), with separate aesthetics for Peter and Paul lakes. Add a line of best fit and color it black. Adjust your axes to hide extreme values.
 
 ```{r}
-
+#4. Create scatterplot for phosphorous and phosphate at Pete & Paul Lakes
+PeterPaul.tp_ug.po4.plot <-
+  ggplot(ChemistryNutrients_PeterPaul, aes(x=po4, y = tp_ug))+
+  geom_point(aes(color=lakename))+
+  JG_default_theme+
+  scale_x_date(date_breaks = "2 months", date_labels = "%b %Y")+
+  ggtitle("Peter Lake & Paul Lake\nPhosphorous & Phosphate Levels")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x = "Phosphate", y= "Phosphorous (ug)", color = "Lakes")+
+  xlim(0, 50)+
+  geom_smooth(method = lm)
+print(PeterPaul.tp_ug.po4.plot)
 
 ```
 
@@ -60,7 +104,50 @@ For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best pract
 5. [NTL-LTER] Make three separate boxplots of (a) temperature, (b) TP, and (c) TN, with month as the x axis and lake as a color aesthetic. Then, create a cowplot that combines the three graphs. Make sure that only one legend is present and that graph axes are aligned.
 
 ```{r}
+#5. Create three separate boxplots 
+#First make month as factor and not integer
+ChemistryNutrients_PeterPaul$month <- as.factor(ChemistryNutrients_PeterPaul$month)
 
+#Boxplot for temperature
+PeterPaul_Temperature.boxplot <-
+ggplot(ChemistryNutrients_PeterPaul, aes(x=month, y= temperature_C, color =lakename))+
+  geom_boxplot()+
+  ggtitle("Lake Temperature by Month")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x= "Month", y = "Temp (C)", color = "Lakes")
+print(PeterPaul_Temperature.boxplot)
+
+#Boxplot for TP
+PeterPaul_TP.boxplot <-
+ggplot(ChemistryNutrients_PeterPaul, aes(x=month, y= tp_ug, color =lakename))+
+  geom_boxplot()+
+ggtitle("Lake Phosphorous Levels by Month")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x= "Month", y = "Phosphorous (ug)", color = "Lakes")
+print(PeterPaul_TP.boxplot)
+
+#Boxplot for TN
+PeterPaul_TN.boxplot <-
+ggplot(ChemistryNutrients_PeterPaul, aes(x=month, y= tn_ug, color =lakename))+
+  geom_boxplot()+
+  ggtitle("Lake Nitrogen Levels by Month")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x= "Month", y = "Nitrogen (ug)", color = "Lakes")
+print(PeterPaul_TN.boxplot)
+
+#Combine the threee boxplots using cowplot
+PeterPaul_combined_boxplot <-
+plot_grid(PeterPaul_Temperature.boxplot, PeterPaul_TP.boxplot +theme(legend.position="none"), PeterPaul_TN.boxplot +theme(legend.position ="none"), nrow=3, align = 'h')
+
+print(PeterPaul_combined_boxplot)
+
+
+
+
+PeterPaul_combined_boxplot <-
+plot_grid(PeterPaul_Temperature.boxplot, PeterPaul_TP.boxplot, PeterPaul_TN.boxplot, nrow=3, align = 'h')
+
+print(PeterPaul_combined_boxplot)
 
 ```
 
@@ -73,6 +160,35 @@ Question: What do you observe about the variables of interest over seasons and b
 7. [Niwot Ridge] Now, plot the same plot but with NLCD classes separated into three facets rather than separated by color. 
 
 ```{r}
+#6. Niwot Ridge - Needles plot w/NLCD classes separated by color
+
+Niwot_NeedlesMass_color.plot <- 
+  ggplot(subset(Niwot_Littertrap, functionalGroup == "Needles"),
+  aes(x=collectDate, y=dryMass, color = nlcdClass))+
+  geom_point()+
+  scale_x_date(date_breaks = "2 months", date_labels = "%b %Y")+
+  theme(axis.text.x = element_text(angle=45, hjust=1.0))+
+  ggtitle("Niwot Ridge: Needles collected in litter traps")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(x = "Collection Date", y= "Dry Mass (g)")
+
+print(Niwot_NeedlesMass_color.plot)
+
+
+#7. Niwot Ridge - Needles plot w/NLCD classes separated by facets
+
+Niwot_NeedlesMass_facets.plot <-
+  ggplot(subset(Niwot_Littertrap, functionalGroup == "Needles"),
+  aes(x=collectDate, y=dryMass))+
+  geom_point()+
+  facet_wrap(vars(nlcdClass), nrow =3)+
+  scale_x_date(date_breaks = "2 months", date_labels = "%b %Y")+
+    theme(axis.text.x = element_text(angle=45, hjust=1.0))+
+  ggtitle("Niwot Ridge: Needles collected in litter traps")+
+    theme(plot.title = element_text(hjust = 0.5))+
+  labs(x = "Collection Date", y= "Dry Mass (g)")
+
+print(Niwot_NeedlesMass_facets.plot)
 
 ```
 Question: Which of these plots (6 vs. 7) do you think is more effective, and why? 
