@@ -1,5 +1,5 @@
 ---
-title: "Assignment 7: GLMs (Linear Regressios, ANOVA, & t-tests)"
+title: "Assignment 6: GLMs (Linear Regressios, ANOVA, & t-tests)"
 author: "Jess Garcia"
 output: pdf_document
 geometry: margin=2.54cm
@@ -30,7 +30,7 @@ The completed exercise is due on Tuesday, March 2 at 1:00 pm.
 getwd()
 
 library(tidyverse)
-install.packages("agricolae")
+#install.packages("agricolae")
 library(agricolae)
 
 Lake_ChemPhys_Raw <- read.csv("./Data/Raw/NTL-LTER_Lake_ChemistryPhysics_Raw.csv", stringsAsFactors = TRUE)
@@ -85,7 +85,7 @@ print(Lake_ChemPhys_Raw_Wrangled.Scatter)
 
 6. Interpret the figure. What does it suggest with regards to the response of temperature to depth? Do the distribution of points suggest anything about the linearity of this trend?
 
-> Answer: This figure suggests that the greater the depth, the lower the temperature of the lake at that point. THis trend seems fairly accurately linear because there is about an equal distribution (or mirroring) of points above and below the best fit line at least at shallower depths. However, there seems to be less data points from the deeper depths and it appears less linear at that end.
+> Answer: This figure suggests that the greater the depth, the lower the temperature of the lake at that point. This trend seems fairly accurately linear because there is about an equal distribution (or mirroring) of points above and below the best fit line at least at shallower depths. However, there seems to be less data points from the deeper depths and it appears less linear at that end. Some of the lakes are also just not as deep as others, at least in the observed measurements.
 
 
 7. Perform a linear regression to test the relationship and display the results
@@ -101,7 +101,7 @@ summary(Temperature_Depth.Regression)
 
 8. Interpret your model results in words. Include how much of the variability in temperature is explained by changes in depth, the degrees of freedom on which this finding is based, and the statistical significance of the result. Also mention how much temperature is predicted to change for every 1m change in depth. 
 
-> Answer: This linear regression suggests a rejection of the null, which means that there is a difference of temperature values that are not because of depth, because the p-value is less than .05. About 73% of the temperature at the lakes can be explained by changes in depth. This finding is based on 9,671 degrees of freedom. For every 1m change in depth the temperature is predicted to decrease by 1.94 degrees Celsius. 
+> Answer: This linear regression suggests a rejection of the null, which means that there is a difference of temperature values that are not because of depth, because the p-value is less than .05. About 73.71% of the temperature at the lakes can be explained by changes in depth. This finding is based on 9,671 degrees of freedom. For every 1m change in depth the temperature is predicted to decrease by 1.94 degrees Celsius. 
 
 
 ---
@@ -116,20 +116,20 @@ Let's tackle a similar question from a different approach. Here, we want to expl
 
 ```{r temperature.model, tidy=TRUE, warning = FALSE}
 #9. Run AIC on explanatory variables
-Lake_ChemPhys.AIC <- lm(data = Lake_ChemPhys_Raw_Wrangled, temperature_C ~ year4 + daynum + depth + lakename)
+Lake_ChemPhys.AIC <- lm(data = Lake_ChemPhys_Raw_Wrangled, temperature_C ~ year4 + daynum + depth)
 
 step(Lake_ChemPhys.AIC)
 
 
 #10. Run multiple regression
-Lake_ChemPhys.AIC <- lm(data = Lake_ChemPhys_Raw_Wrangled, temperature_C ~ year4 + daynum + depth + lakename)
+Lake_ChemPhys.AIC <- lm(data = Lake_ChemPhys_Raw_Wrangled, temperature_C ~ year4 + daynum + depth)
 summary(Lake_ChemPhys.AIC)
 
 ```
 
 11. What is the final set of explanatory variables that the AIC method suggests we use to predict temperature in our multiple regression? How much of the observed variance does this model explain? Is this an improvement over the model using only depth as the explanatory variable?
 
-> Answer: The AIC method suggested using all four explanatory variables from the wrangled data set: year4, daynum, depth, and lakename.This multiple regression model says that those four explanatory variables account for 78.06% of the variance in lake temperature.This is an improvement (more variation accounted for) over the model that used only depth as an explanatory variable for temperature.
+> Answer: The AIC method suggested using all three explanatory variables from the wrangled data set: year4, daynum, and depth.This multiple regression model says that those three explanatory variables account for 73.97% of the variance in lake temperature.This is a tiny improvement (more variation accounted for) over the model that used only depth as an explanatory variable for temperature.
 
 ---
 ## Analysis of Variance
@@ -152,8 +152,7 @@ summary(Lake_ChemPhys.lm)
 
 13. Is there a significant difference in mean temperature among the lakes? Report your findings. 
 
-> Answer: There is a significant different in mean temperatures across lakes, up to a mean difference of 
-
+> Answer: There is a significant difference in mean temperatures across lakes. We know this because the p-value when running either the anova or linear model is very small (<2.2e-16), which means that we can reject the null hypothesis. That null hypothesis is that there is not difference in mean temperatures between the lakes. There are differences between the lakes's mean temperatures, and those differences are significant.
 
 
 14. Create a graph that depicts temperature by depth, with a separate color for each lake. Add a geom_smooth (method = "lm", se = FALSE) for each lake. Make your points 50 % transparent. Adjust your y axis limits to go from 0 to 35 degrees. Clean up your graph to make it pretty. 
@@ -187,12 +186,11 @@ TukeyHSD(Lake_ChemPhys.anova)
 16.From the findings above, which lakes have the same mean temperature, statistically speaking, as Peter Lake? Does any lake have a mean temperature that is statistically distinct from all the other lakes?
 
 >Answer: Ward Lake has the same mean temperature as Peter Lake statistically speaking, because even though there is a mean difference of 1.1 degrees celsius that difference is not statistically significant because the p-value is .81 which is greater than the .05 significance threshold. Therefore, we keep the null hypothesis that the mean temperatures are the same. Paul Lake also has the same mean temperature as Peter Lake statistically speaking, because even though there is a mean difference of -.49 degrees celsius that difference is not statistically significant because the p-value is .25 which is greater than the .05 significance threshold. 
-None of these lakes have a mean temperature that is statistically distinct from all the other lakes. You can tell that because for every lake there as at least one pairing with a p-value greater than 0.5, which means keeping the null that the mean temperatures are statistically significantly the same. 
+None of these lakes have a mean temperature that is statistically distinct from all the other lakes. You can tell that because for every lake there as at least one pairing with a p-value greater than 0.5, which means keeping the null that the mean temperatures are statistically significantly the same for that pairing. 
 
  
 
 17. If we were just looking at Peter Lake and Paul Lake. What's another test we might explore to see whether they have distinct mean temperatures? 
 
->Answer: Interaction? T-test? But how do we do this with just two lakes?
-
+>Answer: If we are just looking at Peter Lake and Paul Lake we can do a two-sample T-test, which is designed for when you're looking at categorical values (lake names) with only two levels (Peter and Paul). The two sample t-test would also tell us if Peter Lake and Paul Lake have distinct mean temperatures.  
 
