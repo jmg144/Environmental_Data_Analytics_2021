@@ -81,14 +81,19 @@ BRA_complete <- inner_join(Rainfall_BR_processed,Temp_BR_processed)
 ```{r}
 
 #Exercise 5: Check if there is any missing data for both temperature and rainfall series.
+summary(BRA_complete)
 
-
-
+#BRA_complete2 <- BRA_complete %>%
+  mutate(Temperature_C = zoo:: na.approx (Temperature_C)) %>%
+  mutate(Rainfall)
 
 #Exercise 6: Plot both series over time on separate plots. Add a trend line using geom_smooth(). Can you say something about the trend just by visualizing the data?
 
-
-
+BRA_complete.plotTEMP <- 
+  ggplot(BRA_complete, aes(x = Date, y = Temperature_C))+
+  geom_line()+
+  geom_smooth(method = lm)
+print(BRA_complete.plotTEMP)
 
 
 
