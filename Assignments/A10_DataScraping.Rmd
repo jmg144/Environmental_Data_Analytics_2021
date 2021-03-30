@@ -1,6 +1,6 @@
 ---
 title: "Assignment 10: Data Scraping"
-author: "Student Name"
+author: "Jess Garcia"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -30,9 +30,19 @@ The completed exercise is due on Tuesday, April 6 at 11:59 pm.
 * Set your ggplot theme
 
 ```{r, message = FALSE}
-#1
+#1. Check working directory, load packages, & set theme
+getwd()
+
+library(tidyverse)
+library(rvest)
+library(lubridate)
 
 
+JG_theme <- 
+theme_bw(base_size = 12)+
+theme(axis.text = element_text(color = "black"),
+plot.title = element_text(color = "black", size = 16, face = "bold",
+hjust = 0.5))
 ```
 
 2. We will be scraping data from the NC DEQs Local Water Supply Planning website, specifically the Durham's 2019 Municipal Local Water Supply Plan (LWSP): 
@@ -44,8 +54,9 @@ The completed exercise is due on Tuesday, April 6 at 11:59 pm.
 Indicate this website as the as the URL to be scraped. 
 
 ```{r set.the.scraping.website}
-#2
+#2. Website scraping URL
 
+Durham_2019.webpage <- read_html ('https://www.ncwater.org/WUDC/app/LWSP/report.php?pwsid=03-32-010&year=2019')
 
 ```
 
@@ -62,7 +73,34 @@ Indicate this website as the as the URL to be scraped.
 In the code chunk below scrape these values into the supplied variable names.
 
 ```{r scrape.the.data}
-#3
+#3. Create variables with scraped data
+
+Water_System_Name <- 
+  Durham_2019.webpage%>%
+  html_nodes("div+ table tr:nth-child(1) td:nth-child(2)") %>%
+  html_text()
+Water_System_Name
+
+
+PSWID <- 
+  Durham_2019.webpage%>%
+  html_nodes("td tr:nth-child(1) td:nth-child(5)") %>%
+  html_text()
+PSWID
+
+
+Ownership <-
+  Durham_2019.webpage%>%
+  html_nodes("div+ table tr:nth-child(2) td:nth-child(4)") %>%
+  html_text()
+Ownership
+
+
+Max_monthly_withdraw<-
+  Durham_2019.webpage%>%
+  html_nodes("th~ td+ td") %>%
+  html_text()
+Max_monthly_withdraw
 
 
 ```
@@ -75,29 +113,73 @@ In the code chunk below scrape these values into the supplied variable names.
 5. Plot the max daily withdrawals across the months for 2019.
 
 ```{r create.a.dataframe.from.scraped.data}
-#4
+#4. Create dataframe
+
+withdrawals.df <- 
+  data.frame("Water System Name" = Water_System_Name,
+            "PSWID" = PSWID, 
+            "Ownership" = Ownership,
+            "Month" = c(1,5,9,2,6,10,3,7,11,4,8,12),
+            "Year" = rep(2019,12),
+            "Max Monthly Withdraw (MGD)" = as.numeric(Max_monthly_withdraw))
+  
+withdrawals.df
+
+#To reorder the dataframe by month after re-ordering the numbers to match the withdrawals
+withdrawals2.df <-withdrawals.df[order(withdrawals.df$Month),]
+
+withdrawals2.df
 
 
 
-#5
+withdrawals3.df <- 
+  withdrawals2.df %>%
+  mutate(Date = (my(paste(Month, "-", Year))))
+  #%>% as.Date(Date, format = "%m-%Y")
+
+#?Is there a way to only load month and year for date object, or always has to have a day too? (in this case it defaults to first of the month)
+withdrawals3.df
+
+class(withdrawals3.df$Date)
 
 
+#5. Plot max daily withdrawals across 2019
 
+MaxWithdrawals_Durham_2019.plot <-
+  ggplot(withdrawals3.df, aes(x = Date, y = Max.Monthly.Withdraw..MGD.))+
+  geom_line()+
+  geom_smooth(method = "loess", se = FALSE)+
+  JG_theme+
+  ylab("Max Monthly Withdraw (MGD)")
+
+plot(MaxWithdrawals_Durham_2019.plot)
+
+?# What does this error mean? Need to fill in the Y as it reads in df column title
 ```
 
 6. Note that the PWSID and the year appear in the web address for the page we scraped. Construct a function using your code above that can scrape data for any PWSID and year for which the NC DEQ has data. Be sure to modify the code to reflect the year and data scraped.
 
 ```{r construct.a.scraping.function}
 #6.
+base_url <-'https://www.ncwater.org/WUDC/app/LWSP/report.php?'
 
+the_PWSID <- '03-32-010'
 
+the_year <- '2019'
+ #? But the year doesn't always show up in the web address when you move between the years 
+  
+the_scrape_URL <- paste0(base_url,'pwsid=',the_PWSID,'&year=',the_year)
+
+print(the_scrape_URL)
+
+#?What does it mean, modify the code to reflect the year and data scraped? Start with pulling the tags and everything for one set of data, then Create a scrape.it function for it based on the year
 
 ```
 
 7. Use the function above to extract and plot max daily withdrawals for Durham for each month in 2015
 
 ```{r fetch.and.plot.Durham.2015.data}
-#7
+#7. Use the function to extract the data
 
 
 ```
