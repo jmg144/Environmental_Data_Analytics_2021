@@ -121,7 +121,7 @@ withdrawals.df <-
             "Ownership" = Ownership,
             "Month" = c(1,5,9,2,6,10,3,7,11,4,8,12),
             "Year" = rep(2019,12),
-            "Max Monthly Withdraw (MGD)" = as.numeric(Max_monthly_withdraw))
+            "Max Monthly Withdraw.MGD" = as.numeric(Max_monthly_withdraw))
   
 withdrawals.df
 
@@ -131,48 +131,107 @@ withdrawals2.df <-withdrawals.df[order(withdrawals.df$Month),]
 withdrawals2.df
 
 
-
 withdrawals3.df <- 
   withdrawals2.df %>%
   mutate(Date = (my(paste(Month, "-", Year))))
-  #%>% as.Date(Date, format = "%m-%Y")
 
-#?Is there a way to only load month and year for date object, or always has to have a day too? (in this case it defaults to first of the month)
 withdrawals3.df
 
-class(withdrawals3.df$Date)
+#class(withdrawals3.df$Date)
 
 
 #5. Plot max daily withdrawals across 2019
 
 MaxWithdrawals_Durham_2019.plot <-
-  ggplot(withdrawals3.df, aes(x = Date, y = Max.Monthly.Withdraw..MGD.))+
+  ggplot(withdrawals3.df, aes(x = Date, y = Max.Monthly.Withdraw.MGD))+
   geom_line()+
   geom_smooth(method = "loess", se = FALSE)+
+  ggtitle("Durham")+
   JG_theme+
-  ylab("Max Monthly Withdraw (MGD)")
+  ylab("Max Monthly Withdraw (MGD)")+
+  scale_x_date(date_breaks = "1 month", date_labels = "%b %Y")+
+  theme(axis.text.x = element_text(angle=45, hjust = 1))
 
 plot(MaxWithdrawals_Durham_2019.plot)
 
-?# What does this error mean? Need to fill in the Y as it reads in df column title
 ```
 
 6. Note that the PWSID and the year appear in the web address for the page we scraped. Construct a function using your code above that can scrape data for any PWSID and year for which the NC DEQ has data. Be sure to modify the code to reflect the year and data scraped.
 
 ```{r construct.a.scraping.function}
-#6.
+#6. Construct a data scraping function
 base_url <-'https://www.ncwater.org/WUDC/app/LWSP/report.php?'
 
 the_PWSID <- '03-32-010'
 
 the_year <- '2019'
- #? But the year doesn't always show up in the web address when you move between the years 
   
 the_scrape_URL <- paste0(base_url,'pwsid=',the_PWSID,'&year=',the_year)
 
 print(the_scrape_URL)
 
-#?What does it mean, modify the code to reflect the year and data scraped? Start with pulling the tags and everything for one set of data, then Create a scrape.it function for it based on the year
+
+#Construct a function to scrape data for any PWSID & year
+scrape.it <- function(the_year, the_PWSID){
+  #Find the website
+  base_url <-'https://www.ncwater.org/WUDC/app/LWSP/report.php?'
+  
+  the_scrape_URL <- paste0(base_url,'pwsid=',the_PWSID,'&year=',the_year)
+  
+  the_website <- read_html(the_scrape_URL)
+  
+  #Scrape the data
+ Water_System_Name2 <- 
+  the_website%>%
+  html_nodes("div+ table tr:nth-child(1) td:nth-child(2)") %>%
+  html_text()
+Water_System_Name2
+
+PSWID2 <- 
+   the_website%>%
+  html_nodes("td tr:nth-child(1) td:nth-child(5)") %>%
+  html_text()
+PSWID2
+
+Ownership2 <-
+  the_website%>%
+  html_nodes("div+ table tr:nth-child(2) td:nth-child(4)") %>%
+  html_text()
+Ownership2
+
+Max_monthly_withdraw2<-
+  the_website%>%
+  html_nodes("th~ td+ td") %>%
+  html_text()
+Max_monthly_withdraw2 
+  
+#Convert to dataframe
+withdrawals_function.df <- 
+  data.frame("Water System Name" = Water_System_Name2,
+            "PSWID" = PSWID2, 
+            "Ownership" = Ownership2,
+            "Month" = c(1,5,9,2,6,10,3,7,11,4,8,12),
+            "Year" = the_year,
+            "Max Monthly Withdraw.MGD" = as.numeric(Max_monthly_withdraw2))
+  
+withdrawals_function.df
+
+#To reorder the dataframe by month after re-ordering the numbers to match the withdrawals
+withdrawals_function2.df <-
+  withdrawals_function.df[order(withdrawals.df$Month),]
+
+withdrawals_function2.df
+
+
+withdrawals_function3.df <- 
+  withdrawals_function2.df %>%
+  mutate(Date = (my(paste(Month, "-", Year))))
+
+withdrawals_function3.df
+
+#Return the dataframe
+return(withdrawals_function3.df)
+}
 
 ```
 
@@ -181,24 +240,74 @@ print(the_scrape_URL)
 ```{r fetch.and.plot.Durham.2015.data}
 #7. Use the function to extract the data
 
+#Durham_test <- scrape.it(2019, "03-32-010")
+
+Durham_2015 <- scrape.it(2015,"03-32-010")
+
+#Plot the Durham 2015 data
+MaxWithdrawals_Durham_2015.plot <-
+  ggplot(Durham_2015, aes(x = Date, y = Max.Monthly.Withdraw.MGD))+
+  geom_line()+
+  geom_smooth(method = "loess", se = FALSE)+
+  ggtitle("Durham")+
+  JG_theme+
+  ylab("Max Monthly Withdraw (MGD)")+
+  scale_x_date(date_breaks = "1 month", date_labels = "%b %Y")+
+  theme(axis.text.x = element_text(angle=45, hjust = 1))
+
+plot(MaxWithdrawals_Durham_2015.plot)
 
 ```
 
 8. Use the function above to extract data for Asheville (PWSID = 01-11-010) in 2015. Combine this data with the Durham data collected above and create a plot that compares the Asheville to Durham's water withdrawals.
 
-```{r fetch.and.plot.Durham.2015.data}
-#8
+```{r fetch.and.plot.Asheville.2015.data}
+#8. Use above function to scrape data for Asheville (PWSID = 01-11-010) in 2015
 
+#Extract Ashevile data
+Asheville_2015 <- scrape.it(2015, "01-11-010")
 
+#Combine Durham & Asheville's withdrawals
+
+Asheville_Durham_2015 <- rbind(Durham_2015, Asheville_2015)
+
+#Plot Durham & Asheville withdrawals
+Asheville_Durham_2015.plot <-
+  ggplot(Asheville_Durham_2015, aes(x=Date, y=Max.Monthly.Withdraw.MGD, color=Water.System.Name))+
+  geom_line()+
+  JG_theme+
+  ylab("Max Monthly Withdraw (MGD)")+
+  scale_x_date(date_breaks = "1 month", date_labels = "%b %Y")+
+  theme(axis.text.x = element_text(angle=45, hjust = 1))
+Asheville_Durham_2015.plot
+  
 ```
 
 
 9. Use the code & function you created above to plot Asheville's max daily withdrawal by months for the years 2010 thru 2019.Add a smoothed line to the plot.
 
 ```{r}
-#9
+#9. Plot Asheville's max withdrawals by month for 2010-2019
+Asheville_10yrwithdrawals <- 
+  map(rep(2010:2019),scrape.it,the_PWSID = "01-11-010") %>% 
+  bind_rows()
 
+
+Asheville_10yrwithdrawals.plot <- 
+  ggplot(Asheville_10yrwithdrawals, aes(x= Date, y= Max.Monthly.Withdraw.MGD))+
+  geom_line()+
+  geom_smooth(method = "loess", se = FALSE)+
+  JG_theme+
+  ylab("Max Monthly Withdraw (MGD)")+
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y")+
+  theme(axis.text.x = element_text(angle=45, hjust = 1))+
+  ggtitle("Asheville")
+  
+Asheville_10yrwithdrawals.plot
 
 ```
 
 >Question: Just by looking at the plot (i.e. not running statistics), does Asheville have a trend in water usage over time?
+
+Just looking at the plot, it does look like Asheville has a trend of increased water withdrawals over time, particularly between 2017 and the present. Prior to 2017 the annual max withdrawals stayed somewhat the same. 
+
