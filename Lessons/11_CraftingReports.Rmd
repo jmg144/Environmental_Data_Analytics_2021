@@ -1,6 +1,8 @@
 ---
 title: '11: Crafting Reports'
-author: Environmental Data Analytics | John Fay & Luana Lima | Developed by Kateri Salk
+author: Environmental Data Analytics | John Fay & Luana Lima | Developed by Kateri Salk,  Knitted by Jess Garcia
+
+#?? How to get the knitted by on another line? Tried two spaces, and tried enter to new line but then it wouldn't knit
 date: "Spring 2021"
 output:
  pdf_document: default
@@ -65,11 +67,22 @@ See: <https://rmarkdown.rstudio.com> and class recording.
 
 <Fill in our discussion below with bullet points. Use italics and bold for emphasis (hint: use the cheat sheets or `Help` →`Markdown Quick Reference` to figure out how to make bold and italic text).> 
 
+* R Markdown is __free__  
+* Code and results can be documented and shared, which contributes to __reproducability__ and __teamwork__  
+* R Markdown knitting allows __easy conversion to different formats__ like PDF or PowerPoint slides  
+* R Markdown will allow updates to output _as you adjust your code_  
+* You can choose to run or display whichever parts you or do not want included  
 
 ## TEXT EDITING CHALLENGE
 
 Create a table below that details the example datasets we have been using in class. The first column should contain the names of the datasets and the second column should include some relevant information about the datasets. (Hint: use the cheat sheets to figure out how to make a table in Rmd)
 
+Dataset Name | Relevant Dataset info
+-------------|-----------------------
+ECOTOX_Neonicitinoids | Looks at effects of certain pesticides on an array of insects
+EPAair |Looks at certain air pollutants
+NIWO_Litter | Looks at litter data collected on land and riparian areas
+NTL_LTER | Looks at the chemistry, radiance, depth, and other factors across different lakes
 
 ## R CHUNK EDITING CHALLENGE
 
@@ -77,15 +90,49 @@ Create a table below that details the example datasets we have been using in cla
 
 Create an R chunk below that installs the package `knitr`. Instead of commenting out the code, customize the chunk options such that the code is not evaluated (i.e., not run).
 
+```{r knitr.install, eval=FALSE}
+#Install knitr
+install.packages("knitr")
+
+```
 
 ### Setup
 
 Create an R chunk below called "setup" that checks your working directory, loads the packages `tidyverse`, `lubridate`, and `knitr`, and sets a ggplot theme. Remember that you need to disable R throwing a message, which contains a check mark that cannot be knitted.
 
+
 Load the NTL-LTER_Lake_Nutrients_Raw dataset, display the head of the dataset, and set the date column to a date format.
 
 Customize the chunk options such that the code is run but is not displayed in the final document.
 
+```{r setup, echo=FALSE, message=FALSE, warning = FALSE}
+#Check working directory
+#getwd()
+
+
+#Load packages
+library(tidyverse)
+library(lubridate)
+library(knitr)
+
+#Set custom ggplot theme
+JG_theme <- 
+theme_bw(base_size = 12)+
+theme(axis.text = element_text(color = "black"),
+plot.title = element_text(color = "black", size = 16, face = "bold",
+hjust = 0.5))
+
+
+#Load data
+Lake_Nutrients <- read.csv("~/ENV872/Environmental_Data_Analytics_2021/Data/Raw/NTL-LTER_Lake_Nutrients_Raw.csv", stringsAsFactors = TRUE)
+
+
+head(Lake_Nutrients)
+
+
+Lake_Nutrients$sampledate <- as.Date(Lake_Nutrients$sampledate, format = "%m/%d/%y")
+
+```
 
 ### Data Exploration, Wrangling, and Visualization
 
@@ -95,17 +142,90 @@ Create an R chunk below to create a processed dataset do the following operation
 -   Include only surface samples (depth = 0 m)
 -   Drop rows with missing data
 
+```{r Process_LakeDataset}
+Lake_Nutrients_processed <- 
+    Lake_Nutrients%>%
+    select(lakename:sampledate, depth:po4)%>%
+    filter(depth == 0)%>%
+    na.omit()
+```
+
 Create a second R chunk to create a summary dataset with the mean, minimum, maximum, and standard deviation of total nitrogen concentrations for each lake. Create a second summary dataset that is identical except that it evaluates total phosphorus. Customize the chunk options such that the code is run but not displayed in the final document.
+
+```{r summary_nutrient_datasets, echo=FALSE}
+#Create summary nitrogen dataset
+Nitrogen.summary <-
+    Lake_Nutrients_processed %>%
+    group_by(lakename) %>%
+    summarise(Mean = mean(tn_ug), 
+              Min = min(tn_ug),
+              Max = max(tn_ug),
+              SD = sd(tn_ug))
+Nitrogen.summary
+
+
+Phosphorous.summary <-
+    Lake_Nutrients_processed %>%
+    group_by(lakename) %>%
+    summarise(Mean = mean(tp_ug), 
+              Min = min(tp_ug),
+              Max = max(tp_ug),
+              SD = sd(tp_ug))
+Phosphorous.summary
+```
 
 Create a third R chunk that uses the function `kable` in the knitr package to display two tables: one for the summary dataframe for total N and one for the summary dataframe of total P. Use the `caption = " "` code within that function to title your tables. Customize the chunk options such that the final table is displayed but not the code used to generate the table.
 
-Create a fourth and fifth R chunk that generates two plots (one in each chunk): one for total N over time with different colors for each lake, and one with the same setup but for total P. Decide which geom option will be appropriate for your purpose, and select a color palette that is visually pleasing and accessible. Customize the chunk options such that the final figures are displayed but not the code used to generate the figures. In addition, customize the chunk options such that the figures are aligned on the left side of the page. Lastly, add a fig.cap chunk option to add a caption (title) to your plot that will display underneath the figure.
+```{r Summary_tables_kable, echo=FALSE}
+#Create display tables for N & P using kable
+knitr::kable(Nitrogen.summary, caption = "Nitrogen Summary Data")
 
+
+knitr::kable(Phosphorous.summary, caption = "Phosphorous Summary Data")
+
+```
+
+Create a fourth and fifth R chunk that generates two plots (one in each chunk): one for total N over time with different colors for each lake, and one with the same setup but for total P. Decide which geom option will be appropriate for your purpose, and select a color palette that is visually pleasing and accessible. 
+Customize the chunk options such that the final figures are displayed but not the code used to generate the figures. In addition, customize the chunk options such that the figures are aligned on the left side of the page. Lastly, add a fig.cap chunk option to add a caption (title) to your plot that will display underneath the figure.
+
+```{r Nitrogen.plot, echo=FALSE, fig.align='left', fig.cap="Nitrogen"}
+
+Nitrogen.plot <-
+    ggplot(Lake_Nutrients_processed, aes(x=sampledate, y=tn_ug))+
+    geom_line(aes(color=lakename))+
+    JG_theme+
+    labs(x="Year", y= "Nitrogen (ug)")+
+    ggtitle("Surface Level Nitrogen Concentrations")
+    #scale_color_viridis()
+Nitrogen.plot
+
+#?? Can't figure out how to change color palette
+#?? How to left align caption too and not just figure?
+
+#scales::show_col(colormap(colormap=colormaps$viridis, nshades=8))
+```
+
+```{r Phosphorous.plot, echo=FALSE, fig.align='left', fig.cap="Phosphorous"}
+
+Phosphorous.plot <-
+    ggplot(Lake_Nutrients_processed, aes(x=sampledate, y=tp_ug))+
+    geom_line(aes(color=lakename))+
+    JG_theme+
+    labs(x="Year", y= "Phosphorous (ug)")+
+    ggtitle("Surface Level Phosphorous Concentrations")
+Phosphorous.plot
+```
 
 ### Communicating results
 
 Write a paragraph describing your findings from the R coding challenge above. This should be geared toward an educated audience but one that is not necessarily familiar with the dataset. Then insert a horizontal rule below the paragraph. Below the horizontal rule, write another paragraph describing the next steps you might take in analyzing this dataset. What questions might you be able to answer, and what analyses would you conduct to answer those questions?
 
+
+Nitrogen and phosphorous levels in these lakes tend to be higher in the summer months. Sometime between 1997 and 1997 across some of the lakes there seems to have been a spike (increase) in the concentrations of both phosphorous and nitrogen.
+***  
+In addition to looking at the watersurface level data for phosphorous and nitrogen levels at varying lakes, it might be interesting to look at how those nutrients have penetrated different depths and what that looks like over time. Given the 1996 spike in nitrogen and phosphorous at some of the lakes it might be interested to see if any of the other nutrient samples collected also experienced spikes around the same time; that information could potentially help scientists figure out what may have caused this spike that year. 
+
+#??Horizontal rule/slide break between two paragraphs doesn't work...And why do the plots appear in the communicating results section?
 
 ## KNIT YOUR PDF
 When you have completed the above steps, try knitting your PDF to see if all of the formatting options you specified turned out as planned. This may take some troubleshooting.
